@@ -1,0 +1,198 @@
+import csv
+# Throughout this project, the use of data structures are not permitted 
+# Minimal built in functions are to be used and the majority of functions must be
+# created yourself
+
+# More packages may be imported in the space below if approved by your instructor
+
+def printMenu():
+    print('''
+          Customer and Sales System\n
+          1. Enter Customer Information\n
+          2. Generate Customer data file\n
+          3. Report on total Sales (Not done in this part)\n
+          4. Check for fraud in sales data (Not done in this part)\n
+          9. Quit\n
+          Enter menu option (1-9)
+          ''')
+
+################################################################################################################################################
+
+def enterCustomerInfo():
+
+    global customers, current_customer_id, valid_postal_codes
+
+    print("Enter customer information:")
+
+    while True:
+        first_name = input("First Name: ").strip()
+        if first_name:
+            break
+        print("Enter a first name.")
+    
+    while True:
+        last_name = input("Last Name: ").strip()
+        if last_name:
+            break
+        print("Enter a last name.")
+    
+    while True:
+        city = input("City: ").strip()
+        if city:
+            break
+        print("Enter a city.")
+    
+    while True:
+        postal_code = input("Postal Code: ").replace(" ", "").upper()
+        if len(postal_code) == 3:
+            break
+        else:
+            print("Please enter a 3 digit code.")
+
+    while not validatePostalCode(postal_code, valid_postal_codes):
+        print("Invalid postal code. Try again.")
+        postal_code = input("Postal Code: ").replace(" ", "").upper()
+
+    credit_card = input("Credit Card Number: ").replace(" ", "")
+    while not validateCreditCard(credit_card):
+        print("Invalid credit card number. Try again.")
+        credit_card = input("Credit Card Number: ").replace(" ", "")
+
+    customers.append({
+        "id": current_customer_id,
+        "first_name": first_name,
+        "last_name": last_name,
+        "city": city,
+        "postal_code": postal_code,
+        "credit_card": credit_card
+        })
+
+    print(f"Customer {current_customer_id} added successfully.")
+
+    current_customer_id += 1
+
+################################################################################################################################################
+
+def loadPostalCodes(postalcode_file):
+
+    valid_postal_codes = []
+
+    try:
+        with open(postalcode_file, 'r') as file:
+            for row in file:
+                row_lst = row.split('|')
+                if len(row_lst[0]) == 3:
+                    valid_postal_codes.append(row_lst[0])
+    except FileNotFoundError:
+        print("Postal code file not found.\n"
+              "Please provide a valid postal code file.")
+        exit()
+    return valid_postal_codes
+
+def validatePostalCode(postal_code, valid_postal_codes):
+    return postal_code in valid_postal_codes
+
+################################################################################################################################################
+
+def validateCreditCard(card_number):
+
+    if len(card_number) < 9 or not card_number.isdigit():
+        return False
+
+    def luhn(card_number):
+
+        def reverse(card_number):
+            numbers = []
+            for d in card_number:
+                numbers.append(int(d))
+            numbers.reverse()
+            return numbers
+        
+        sum_ = 0
+        reversed_numbers = reverse(card_number)
+
+        for i, digit in enumerate(reversed_numbers):
+            if i % 2 == 1:
+                digit *= 2
+                if digit > 9:
+                    digit -= 9
+            sum_ += digit
+        return sum_ % 10
+
+    return luhn(card_number) == 0
+
+################################################################################################################################################
+
+def generateCustomerDataFile():
+
+    global customers
+
+    file_name = input("Enter output file name (e.g. customers): ").strip()
+    if file_name == "":
+        file_name = "customers.csv"
+    if file_name[-4:] != ".csv":
+        file_name += ".csv"
+    try:
+        with open(file_name, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["ID", "First Name", "Last Name", "City", "Postal Code", "Credit Card Number"])
+            for customer in customers:
+                writer.writerow([
+                    customer["id"],
+                    customer["first_name"],
+                    customer["last_name"],
+                    customer["city"],
+                    customer["postal_code"],
+                    customer["credit_card"]
+                ])
+        print(f"Customer data saved to {file_name}.")
+
+    except Exception as e: #explain
+        print(f"Failed to save file: {e}")
+
+####################################################################
+#       ADDITIONAL METHODS MAY BE ADDED BELOW IF NECESSARY         #
+####################################################################
+
+
+
+
+####################################################################
+#                            MAIN PROGRAM                          #
+#           DO NOT EDIT ANY CODE EXCEPT WHERE INDICATED            #
+####################################################################
+
+# Do not edit any of these variables
+userInput = ""
+enterCustomerOption = "1"
+generateCustomerOption = "2"
+exitCondition = "9"
+
+# More variables for the main may be declared in the space below
+valid_postal_codes = loadPostalCodes("C:/Users/Felix/Downloads/postal_codes.csv")
+customers = []
+current_customer_id = 1
+
+################################################################################################################################################
+
+while userInput != exitCondition:
+    printMenu()
+    userInput = input("Choose an option: ").strip(); 
+
+    if userInput == enterCustomerOption:
+        # Only the line below may be editted based on the parameter list and how you design the method return
+        # Any necessary variables may be added to this if section, but nowhere else in the code
+        enterCustomerInfo()
+
+    elif userInput == generateCustomerOption: 
+        # Only the line below may be editted based on the parameter list and how you design the method return
+        if customers == []:
+            print("No data to generate file. Please enter customer info.")
+            continue
+        generateCustomerDataFile()
+
+    else:
+        print("Please type in a valid option (A number from 1-9)")
+
+#Exits once the user types 
+print("Program Terminated")
